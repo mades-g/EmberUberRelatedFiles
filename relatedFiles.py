@@ -18,6 +18,8 @@ class EmberUberRelatedFilesCommand(sublime_plugin.WindowCommand):
     "app": ".js"
   }
 
+  nooop = False
+
   def run(self):
     def open_related_files(index):
       if index >= 0 and self.nooop == False:
