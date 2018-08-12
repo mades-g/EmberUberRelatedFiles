@@ -56,7 +56,7 @@ class EmberUberRelatedFilesCommand(sublime_plugin.WindowCommand):
       if self.file_structure.get("c_app_root") == "tests":
         self.file_structure["c_path_helper"] = path_without_ext.replace("-test", '')
 
-  def set_current_related_files(self):
+  def set_current_related_files(self, skip_og = None):
     split_path = self.file_structure.get("c_file_type_reference_path").split(os.sep)
     _path = ""
     replaces_shadow = copy.deepcopy(self.struct_replacers)
@@ -74,20 +74,22 @@ class EmberUberRelatedFilesCommand(sublime_plugin.WindowCommand):
           else:
             _path = path_helper.replace(self.file_structure.get("c_file_type_reference_path"), root_dir + os.sep + sub_dir[index] + os.sep)
 
-          if self.is_valid_path(_path) and self.og_path != _path:
+          if self.is_valid_path(_path) and (skip_og or self.og_path != _path):
             self.file_structure.get("related_files").append(_path)
 
     elif len(split_path) == 4:
       _path_helper = self.file_structure.get("c_path_helper") + self.file_type_ext.get("app")
       if self.file_structure.get("c_sub_dir_type") not in self.struct_replacers.get("app"):
         # since its not in could be routes or controllers
-        print("ooo")
+        _path_helper = _path_helper.replace(self.file_structure.get("c_file_type_reference_path"), "app" + os.sep + "routes" + os.sep + self.file_structure.get("c_sub_dir_type") + os.sep)
+
+        if self.is_valid_path(_path_helper) == False:
+          _path_helper = _path_helper.replace(self.file_structure.get("c_file_type_reference_path"), "app" + os.sep + "controllers" + os.sep + self.file_structure.get("c_sub_dir_type") + os.sep)
       else:
-        print('iiiiii')
         _path_helper = _path_helper.replace(self.file_structure.get("c_file_type_reference_path"), "app" + os.sep + self.file_structure.get("c_sub_dir_type") + os.sep)
-        if self.is_valid_path(_path_helper):
-          self.set_current_file_structure(_path_helper)
-          self.set_current_related_files()
+      if self.is_valid_path(_path_helper):
+        self.set_current_file_structure(_path_helper)
+        self.set_current_related_files(True)
 
   @staticmethod
   def path_creator(regex_res_group):
