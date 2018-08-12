@@ -19,7 +19,23 @@ class EmberUberRelatedFilesCommand(sublime_plugin.WindowCommand):
   }
 
   def run(self):
-    pass
+    def open_related_files(index):
+      if index >= 0 and self.nooop == False:
+        self.window.open_file(self.file_structure.get("related_files")[index])
+    ##
+
+    self.current_view = self.window.active_view()
+
+    self.set_current_file_structure(self.current_view.file_name())
+    self.set_current_related_files()
+
+    related_files = self.file_structure.get("related_files")
+
+    if len(related_files) == 0:
+      related_files = [ 'nooop' ]
+      self.nooop = True
+
+    self.current_view.show_popup_menu(related_files, open_related_files)
 
   def set_current_file_structure(self, path):
     self.og_path = path
