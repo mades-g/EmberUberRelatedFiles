@@ -70,10 +70,10 @@ class EmberUberRelatedFilesCommand(sublime_plugin.WindowCommand):
           if root_dir == "templates":
             # hum that hard coded app tho
             _path = path_helper.replace(self.file_structure.get("c_file_type_reference_path"), "app" + os.sep + root_dir + os.sep + sub_dir[index] + os.sep).replace("//", "/")
-            if self.is_valid_path(_path) == False:
+            if self.is_valid_path(_path) == False and self.file_structure.get("c_sub_dir_type") is not None:
               _path = path_helper.replace(self.file_structure.get("c_file_type_reference_path"), "app" + os.sep + root_dir + os.sep + self.file_structure.get("c_sub_dir_type") + os.sep).replace("//", "/")
 
-          elif root_dir == "tests" and sub_dir[index] != "acceptance":
+          elif root_dir == "tests" and sub_dir[index] != "acceptance" and self.file_structure.get("c_sub_dir_type") is not None:
               _path = path_helper.replace(self.file_structure.get("c_file_type_reference_path"), root_dir + os.sep + sub_dir[index] + os.sep + self.file_structure.get("c_sub_dir_type") + os.sep)
           else:
             _path = path_helper.replace(self.file_structure.get("c_file_type_reference_path"), root_dir + os.sep + sub_dir[index] + os.sep)
