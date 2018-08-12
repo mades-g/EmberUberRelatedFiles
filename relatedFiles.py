@@ -6,6 +6,7 @@ import sublime_plugin
 
 class EmberUberRelatedFilesCommand(sublime_plugin.WindowCommand):
 
+  file_structure_regex_fix = "(?P<app_root>app)(?:/(?P<has_template>templates))?(?(1)/(.*?)/)|/(?P<test>tests)/(?P<test_type>.*?)/(?P<test_dir_ref>.*?)"
   file_structure_regex = "/(?P<app_root>app)(?:/(?P<has_template>templates))?(?(1)/(.*?)/)|/(?P<test>tests)/(?P<test_type>.*?)/(?P<test_dir_ref>.*?)/"
   struct_replacers = {
   "tests": [ "unit", "integration", "acceptance" ],
@@ -44,6 +45,10 @@ class EmberUberRelatedFilesCommand(sublime_plugin.WindowCommand):
     self.file_structure = {}
 
     file_structure_search = re.search(self.file_structure_regex, path)
+
+    if file_structure_search is None:
+      file_structure_search = re.search(self.file_structure_regex_fix, path)
+
     path_without_ext, ext = os.path.splitext(path)
 
     if len(file_structure_search.groups()) > 0:
