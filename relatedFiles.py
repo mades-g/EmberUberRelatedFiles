@@ -39,7 +39,7 @@ class EmberUberRelatedFilesCommand(sublime_plugin.WindowCommand):
       related_files = [ 'nooop' ]
       self.nooop = True
 
-    self.current_view.show_popup_menu(related_files, open_related_files)
+    self.window.show_quick_panel(self.file_type_creator(related_files), open_related_files)
 
   def set_current_file_structure(self, path):
     self.file_structure = {}
@@ -107,6 +107,26 @@ class EmberUberRelatedFilesCommand(sublime_plugin.WindowCommand):
       if value is not None and value is not '':
         path += value + os.sep
     return path
+
+  @staticmethod
+  def file_type_creator(_list_of_files):
+    _ref = []
+    _x = ""
+
+    for value in _list_of_files:
+      res = re.search("(app/(.*?)/.*)", value)
+      if res is not None:
+        _r = res.groups()
+        _x = _r[1].capitalize()[:-1] + ' -> ' + _r[0]
+
+      if "/tests/" in value:
+        res = re.search("(tests/(.*?)/.*)", value)
+        if res is not None:
+          _r = res.groups()
+          _x = 'Test: ' + _r[1].capitalize() + ' -> ' + _r[0]
+      if _x != "":
+        _ref.append(_x)
+    return _ref
 
   @staticmethod
   def is_valid_path(path):
