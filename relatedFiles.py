@@ -22,6 +22,7 @@ class EmberUberRelatedFilesCommand(sublime_plugin.WindowCommand):
   nooop = False
 
   def run(self):
+    self.nooop = False
     def open_related_files(index):
       if index >= 0 and self.nooop == False:
         self.window.open_file(self.file_structure.get("related_files")[index])
@@ -35,7 +36,7 @@ class EmberUberRelatedFilesCommand(sublime_plugin.WindowCommand):
 
     related_files = self.file_structure.get("related_files")
 
-    if len(related_files) == 0:
+    if related_files == None or len(related_files) == 0:
       related_files = [ 'nooop' ]
       self.nooop = True
 
@@ -51,7 +52,7 @@ class EmberUberRelatedFilesCommand(sublime_plugin.WindowCommand):
 
     path_without_ext, ext = os.path.splitext(path)
 
-    if len(file_structure_search.groups()) > 0:
+    if file_structure_search and len(file_structure_search.groups()) > 0:
       self.file_structure.setdefault("c_app_root", file_structure_search.group('app_root') or file_structure_search.group('test'))
       self.file_structure.setdefault("c_file_type_reference_path", self.path_creator(file_structure_search.groups()))
       self.file_structure.setdefault("c_sub_dir", file_structure_search.group("test_type") or file_structure_search.group(2))
@@ -64,6 +65,9 @@ class EmberUberRelatedFilesCommand(sublime_plugin.WindowCommand):
         self.file_structure["c_path_helper"] = path_without_ext.replace("-test", '')
 
   def set_current_related_files(self):
+    if self.file_structure.get("c_file_type_reference_path") == None:
+      return
+
     split_path = self.file_structure.get("c_file_type_reference_path").split(os.sep)
     _path = ""
     replaces_shadow = copy.deepcopy(self.struct_replacers)
