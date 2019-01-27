@@ -11,8 +11,7 @@ default_root = {
 
 default_files_config = {
   'tests': default_root['tests'],
-  'templates': '.hbs',
-  'app': default_root['app']
+  'templates': '.hbs'
 }
 
 class EmberUberRelatedFilesCommand(sublime_plugin.WindowCommand):
@@ -20,59 +19,51 @@ class EmberUberRelatedFilesCommand(sublime_plugin.WindowCommand):
     self.current_view = self.window.active_view()
     self.og_path = self.current_view.file_name()
 
-    file_config = self.create_types_config(self.og_path)
+    file_config = self.create_types_config()
 
-    related_files = self.find_related(**file_config)
+  def get_project_type(self, path):
+    project_root = 'app'
+
+    if default_files_config['tests'] in path:
+      project_root = 'tests'
+    elif default_files_config['templates'] in path:
+      project_root = 'templates'
+
+    return project_root
 
   # return {Dict}
-  def create_types_config(self, path):
-    file_config = {}
-    is_root_path = False
-    # Order regarding `tests` and `project type` matters
+  def create_types_config(self):
+
     reg = ''
-    for file_type in default_files_config:
-      ext = default_files_config[file_type]
-      if ext in path:
-        if file_type == 'tests':
-          file_config['type'] = file_type
-          reg = '{type_config}{os_sep}\\w+{os_sep}(?P<section_type>\\w+){os_sep}(.*{os_sep})(?=(?P<file_name>.*){ext})'.format_map({'type_config': file_type, 'os_sep': os.sep, 'ext': ext})
-          break;
+    path = self.og_path
+    is_root_path = False
+    project_type = self.get_project_type(path)
+    project_root = re.sub('(.*{root}{sep}).*'.format_map({'sep': os.sep, 'root': project_type}), r'\1', path)
+    file_config = {}
 
-        file_config['type'] = 'app'
+    ext = default_files_config.get(project_type, '.js')
+    reg = '{project_root}(.*)(?={ext})'.format_map({'project_root': project_root, 'ext': ext})
 
-    search_res = re.search(reg, path)
+    sub_paths_info_res = re.search(reg, path)
 
-    if search_res is not None:
-      file_config['path'] = '/' if is_root_path else search_res.groups()[1]
-      file_config['section_type'] = search_res.group('section_type')
-      file_config['name'] = search_res.group('file_name')
+    if sub_paths_info_res is not None:
+      file_id = sub_paths_info_res.groups()[0].split(os.sep)[0]
+      file_config['name'] = sub_paths_info_res.groups()[0].split(os.sep)[-1]
+      sub_paths_len = len(sub_paths_info_res.groups()[0].split(os.sep))
 
-    return file_config
+      if file_id == 'acceptance':
+        # messy one
+        file_config['section_type'] = 'routes'
+        file_path_res = re.search('.*{sep}{type}{sep}(.*){sep}{name}'.format_map({'sep': os.sep, 'type': file_id, 'name': file_config['name']}), path)
 
-  def find_related(self, **file_config):
-    related = []
-    path = file_config['path']
-    section_type = file_config['section_type']
-    file_name = file_config['name']
-    project_root = re.sub('(.*{root}{os_sep}).*'.format_map({'os_sep': os.sep, 'root': file_config['type']}), r'\1', self.og_path)
+        if file_path_res is not None:
+          file_config['path'] = file_path_res.group(0)
+      else:
+        file_config['section_type'] = sub_paths_info_res.groups()[0].split(os.sep)[0]
 
-    for root in default_root:
-      project_root = re.sub('(\\w+){os_sep}$'.format_map({'os_sep': os.sep}), root + os.sep, project_root)
+      file_path_res = re.search('.*{sep}{type}{sep}(.*){sep}{name}'.format_map({'sep': os.sep, 'type': file_config['section_type'], 'name': file_config['name']}), path)
 
-      for root_path, dirs, files in os.walk(project_root):
+      if file_path_res is not None:
+          file_config['path'] = file_path_res.group(1)
 
-        for dir in dirs:
-          if dir != 'acceptance' and root == 'tests':
-            lookup = project_root + dir + os.sep + section_type + os.sep + path
-          else:
-            lookup = project_root + dir + os.sep + path
-          if os.path.exists(lookup):
-            if 'templates' in lookup:
-              found = lookup + file_name + default_files_config['templates']
-            else:
-              found = lookup + file_name + default_root[root]
-
-            if os.path.isfile(found) and found != self.og_path and found not in related:
-              related.append(found)
-
-    return related
+      file_config.setdefault('path', os.sep)
