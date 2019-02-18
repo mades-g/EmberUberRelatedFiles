@@ -10,7 +10,7 @@ class EmberUberRelatedFilesCommand(sublime_plugin.WindowCommand):
   file_structure_regex = "/(?P<app_root>app)(?:/(?P<has_template>templates))?(?(1)/(.*?)/)|/(?P<test>tests)/(?P<test_type>.*?)/(?P<test_dir_ref>.*?)/"
   struct_replacers = {
   "tests": [ "unit", "integration", "acceptance" ],
-  "app": [ "templates", "routes", "components", "controllers", "adapters", "helpers", "instance-initializers", "mixins", "models", "serializers", "utils" ],
+  "app": [ "templates", "routes", "components", "controllers", "adapters", "helpers", "instance-initializers", "mixins", "models", "serializers", "utils", "services" ],
   "templates": [ "" ]
   }
   file_type_ext = {
